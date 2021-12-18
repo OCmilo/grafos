@@ -58,7 +58,7 @@ class Graph:
             write_line(f"Number of vertices: {len(self.graph)}")
             write_line(f"Number of edges: {self.number_of_edges}")
             write_line(f"Minimum degree: {self.min_degree}")
-            write_line(f"Maximun degree: {self.max_degree}")
+            write_line(f"Maximum degree: {self.max_degree}")
             write_line(f"Medium degree: {self.med_degree}")
             write_line(f"Median degree: {self.median_degree}")
             write_line(f"Number of Connected Components: {len(components)}")
@@ -67,6 +67,20 @@ class Graph:
                 write_line(
                     f"Component {idx+1} - Length: {len(component)}, Vertices: {component}"
                 )
+
+    def bfs_report(self, starting_node: str):
+        self.spanning_tree(starting_node, algorithm=self.bfs)
+
+    def dfs_report(self, starting_node: str):
+        self.spanning_tree(starting_node, algorithm=self.dfs)
+
+    def spanning_tree(self, starting_node: str, algorithm: Callable) -> str:
+        tree, _ = algorithm(starting_node, tree=True)
+
+        with open(f"{algorithm.__name__}.txt", "w") as file:
+            level = 1
+            file.write(f"Level 0: {starting_node}\n")
+            self.__bfs_report_helper(tree, starting_node, level, file)
 
     def bfs(
         self, starting_node: str, tree: bool = False
@@ -86,22 +100,8 @@ class Graph:
 
         return (tree_struct, starting_node) if tree else visited_nodes
 
-    def bfs_report(self, starting_node: str):
-        self.spanning_tree(starting_node, algorithm=self.bfs)
-
-    def dfs_report(self, starting_node: str):
-        self.spanning_tree(starting_node, algorithm=self.dfs)
-
-    def spanning_tree(self, starting_node: str, algorithm: Callable) -> str:
-        tree, _ = algorithm(starting_node, tree=True)
-
-        with open(f"{algorithm.__name__}.txt", "w") as file:
-            level = 1
-            file.write(f"Level 0: {starting_node}\n")
-            self.__bfs_report_helper(tree, starting_node, level, file)
-
     def dfs(
-        self, starting_node: str, tree: bool = True
+        self, starting_node: str, tree: bool = False
     ) -> Union[List[str], Tuple[DefaultDict[str, Set[str]], str]]:
         visited = list()
         tree_struct = defaultdict(set)
@@ -121,13 +121,13 @@ class Graph:
             node = path[-1]
 
             if node not in explored:
-                neighbours = self.graph[node]
-                for neighbour in neighbours:
+                neighbors = self.graph[node]
+                for neighbor in neighbors:
                     new_path = list(path)
-                    new_path.append(neighbour)
+                    new_path.append(neighbor)
                     queue.append(new_path)
 
-                    if neighbour == goal:
+                    if neighbor == goal:
                         return new_path
 
                 explored.append(node)
