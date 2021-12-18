@@ -3,4 +3,6 @@ from os import path
 
 file_dir = path.dirname(path.abspath(__file__))
 graph = Graph(path.join(file_dir, "../in.txt"))
-print(graph.report())
+graph.report()
+graph.bfs_report("1")
+graph.dfs_report("2")
