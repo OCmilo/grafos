@@ -1,7 +1,8 @@
 from statistics import mean, median
-from typing import List, Union, DefaultDict, Set, Tuple, Callable
 from collections import defaultdict, deque
 from itertools import combinations
+from io import TextIOWrapper
+from typing import List, Union, DefaultDict, Set, Tuple, Callable
 
 
 class Graph:
@@ -80,7 +81,7 @@ class Graph:
         with open(f"{algorithm.__name__}.txt", "w") as file:
             level = 1
             file.write(f"Level 0: {starting_node}\n")
-            self.__bfs_report_helper(tree, starting_node, level, file)
+            self.__spanning_tree_helper(tree, starting_node, level, file)
 
     def bfs(
         self, starting_node: str, tree: bool = False
@@ -156,7 +157,13 @@ class Graph:
 
         return max(shortest_paths)
 
-    def __bfs_report_helper(self, tree, node, level, file):
+    def __spanning_tree_helper(
+        self,
+        tree: DefaultDict[str, Set[str]],
+        node: str,
+        level: int,
+        file: TextIOWrapper,
+    ):
         if len(tree[node]) == 0:
             return
 
@@ -169,7 +176,7 @@ class Graph:
         level += 1
 
         for child in tree[node]:
-            self.__bfs_report_helper(tree, child, level, file)
+            self.__spanning_tree_helper(tree, child, level, file)
 
     def __dfs_helper(
         self,
