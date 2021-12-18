@@ -1,5 +1,5 @@
 from statistics import mean, median
-from typing import List, Union, DefaultDict, Set, Tuple
+from typing import List, Union, DefaultDict, Set, Tuple, Callable
 from collections import defaultdict, deque
 from itertools import combinations
 
@@ -86,49 +86,28 @@ class Graph:
 
         return (tree_struct, starting_node) if tree else visited_nodes
 
-    def bfs_report(self, starting_node: str) -> str:
-        tree, _ = self.bfs(starting_node, tree=True)
+    def bfs_report(self, starting_node: str):
+        self.spanning_tree(starting_node, algorithm=self.bfs)
 
-        with open("bfs.txt", "w") as file:
+    def dfs_report(self, starting_node: str):
+        self.spanning_tree(starting_node, algorithm=self.dfs)
+
+    def spanning_tree(self, starting_node: str, algorithm: Callable) -> str:
+        tree, _ = algorithm(starting_node, tree=True)
+
+        with open(f"{algorithm.__name__}.txt", "w") as file:
             level = 1
             file.write(f"Level 0: {starting_node}\n")
             self.__bfs_report_helper(tree, starting_node, level, file)
 
-    def __bfs_report_helper(self, tree, node, level, file):
-        if len(tree[node]) == 0:
-            return
-
-        file.write(f"Level {level}, Father {node}: ")
-
-        for child in tree[node]:
-            file.write(f"{child} ")
-
-        file.write("\n")
-        level += 1
-
-        for child in tree[node]:
-            self.__bfs_report_helper(tree, child, level, file)
-
-    def connected_components(self) -> List[List[str]]:
+    def dfs(
+        self, starting_node: str, tree: bool = True
+    ) -> Union[List[str], Tuple[DefaultDict[str, Set[str]], str]]:
         visited = list()
-        connected_vertices = []
+        tree_struct = defaultdict(set)
+        self.__dfs_helper(visited, starting_node, tree_struct, starting_node)
 
-        for vertice in self.graph:
-            if vertice not in visited:
-                dfs = self.dfs(vertice)
-
-                visited.extend(dfs)
-                connected_vertices.append(dfs)
-
-        connected_vertices.sort(key=lambda component: len(component), reverse=True)
-
-        return connected_vertices
-
-    def dfs(self, starting_node: str):
-        visited = list()
-        self.__dfs_helper(visited, starting_node)
-
-        return visited
+        return (tree_struct, starting_node) if tree else visited
 
     def shortest_path(self, start: str, goal: str) -> List[None]:
         explored = []
@@ -155,6 +134,21 @@ class Graph:
 
         return []
 
+    def connected_components(self) -> List[List[str]]:
+        visited = list()
+        connected_vertices = []
+
+        for vertice in self.graph:
+            if vertice not in visited:
+                dfs = self.dfs(vertice)
+
+                visited.extend(dfs)
+                connected_vertices.append(dfs)
+
+        connected_vertices.sort(key=lambda component: len(component), reverse=True)
+
+        return connected_vertices
+
     def diameter(self) -> int:
         shortest_paths = list()
         for vert1, vert2 in combinations(self.graph.keys(), 2):
@@ -162,11 +156,37 @@ class Graph:
 
         return max(shortest_paths)
 
-    def __dfs_helper(self, visited_list: List[str], node: str) -> List[str]:
+    def __bfs_report_helper(self, tree, node, level, file):
+        if len(tree[node]) == 0:
+            return
+
+        file.write(f"Level {level}, Father {node}: ")
+
+        for child in tree[node]:
+            file.write(f"{child} ")
+
+        file.write("\n")
+        level += 1
+
+        for child in tree[node]:
+            self.__bfs_report_helper(tree, child, level, file)
+
+    def __dfs_helper(
+        self,
+        visited_list: List[str],
+        node: str,
+        tree: DefaultDict[str, Set[str]],
+        father: str,
+    ) -> List[str]:
         if node not in visited_list:
+            ordered_neighbors = list(self.graph[node])
+            ordered_neighbors.sort(key=lambda vertice: int(vertice))
+
             visited_list.append(node)
-            for neighbor in self.graph[node]:
-                self.__dfs_helper(visited_list, neighbor)
+            if father != node:
+                tree[father].add(node)
+            for neighbor in ordered_neighbors:
+                self.__dfs_helper(visited_list, neighbor, tree, node)
 
     def __get_degrees(self) -> int:
         list_of_degrees = []
