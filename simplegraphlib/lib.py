@@ -1,26 +1,59 @@
 from statistics import mean, median
-from typing import List, Tuple
+from typing import List, Union, DefaultDict, Set, Tuple
 from collections import defaultdict, deque
 from itertools import combinations
 
 
 class Graph:
-    def __init__(self, filePath: str) -> None:
+    def __init__(self, filePath: str, matrix: bool = False) -> None:
         lines = list()
         with open(filePath, "r") as file:
             lines = file.readlines()
 
+        self.matrix = matrix
         self.graph = defaultdict(set)
         self.number_of_edges = len(lines[1:])
         self.__add_edges(lines[1:])
         self.__get_degrees()
 
+        if matrix:
+            self.convert_to_matrix()
+
+    def convert_to_matrix(self) -> None:
+        vertices = len(self.graph)
+        ordered_keys = list(self.graph.keys())
+        ordered_keys.sort(key=lambda key: int(key))
+
+        matrix = [[0 for j in range(vertices)] for i in range(vertices)]
+
+        for idx, vertice in enumerate(ordered_keys):
+            for edge in self.graph[vertice]:
+                matrix[idx][int(edge) - 1] = 1
+
+        self.matrix_graph = matrix
+
     def report(self) -> None:
         with open("out.txt", "w") as file:
             components = self.connected_components()
 
-            def write_line(text: str) -> None:
+            def write_line(text: str = "") -> None:
                 file.write(f"{text}\n")
+
+            if not self.matrix:
+                for vertice in self.graph:
+                    file.write(vertice + " ")
+
+                    for edge in self.graph[vertice]:
+                        file.write(" --> " + edge)
+
+                    write_line()
+            else:
+                for i in range(len(self.matrix_graph)):
+                    for j in range(len(self.matrix_graph)):
+                        file.write(str(self.matrix_graph[i][j]) + " ")
+                    write_line()
+
+            write_line()
 
             write_line(f"Number of vertices: {len(self.graph)}")
             write_line(f"Number of edges: {self.number_of_edges}")
@@ -35,9 +68,13 @@ class Graph:
                     f"Component {idx+1} - Length: {len(component)}, Vertices: {component}"
                 )
 
-    def bfs(self, starting_node: str) -> List[str]:
-        visited_nodes = [starting_node]
+    def bfs(
+        self, starting_node: str, tree: bool = False
+    ) -> Union[List[str], Tuple[DefaultDict[str, Set[str]], str]]:
+
+        visited_nodes = list(starting_node)
         queue = deque([starting_node])
+        tree_struct = defaultdict(set)
 
         while queue:
             node = queue.popleft()
@@ -45,8 +82,32 @@ class Graph:
                 if edge not in visited_nodes:
                     visited_nodes.append(edge)
                     queue.append(edge)
+                    tree_struct[node].add(edge)
 
-        return visited_nodes
+        return (tree_struct, starting_node) if tree else visited_nodes
+
+    def bfs_report(self, starting_node: str) -> str:
+        tree, _ = self.bfs(starting_node, tree=True)
+
+        with open("bfs.txt", "w") as file:
+            level = 1
+            file.write(f"Level 0: {starting_node}\n")
+            self.__bfs_report_helper(tree, starting_node, level, file)
+
+    def __bfs_report_helper(self, tree, node, level, file):
+        if len(tree[node]) == 0:
+            return
+
+        file.write(f"Level {level}, Father {node}: ")
+
+        for child in tree[node]:
+            file.write(f"{child} ")
+
+        file.write("\n")
+        level += 1
+
+        for child in tree[node]:
+            self.__bfs_report_helper(tree, child, level, file)
 
     def connected_components(self) -> List[List[str]]:
         visited = list()
