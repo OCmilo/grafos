@@ -151,11 +151,13 @@ class Graph:
         return connected_vertices
 
     def diameter(self) -> int:
-        shortest_paths = list()
+        max_shortest_path = 0
         for vert1, vert2 in combinations(self.graph.keys(), 2):
-            shortest_paths.append(len(self.shortest_path(vert1, vert2)))
+            path_size = len(self.shortest_path(vert1, vert2))
+            if path_size > max_shortest_path:
+                max_shortest_path = path_size
 
-        return max(shortest_paths)
+        return max_shortest_path
 
     def __spanning_tree_helper(
         self,
