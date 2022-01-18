@@ -153,10 +153,9 @@ class Graph:
     def diameter(self) -> int:
         max_shortest_path = 0
         for vert1, vert2 in combinations(self.graph.keys(), 2):
-            p = len(self.shortest_path(vert1, vert2))
-            if p>max_shortest_path:
-                max_shortest_path = p
-                #print(max_shortest_path) #para execuções que não finalizam, substituir por signal handler para não printar cada iteração
+            path_size = len(self.shortest_path(vert1, vert2))
+            if path_size > max_shortest_path:
+                max_shortest_path = path_size
 
         return max_shortest_path
 
