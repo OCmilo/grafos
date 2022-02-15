@@ -1,5 +1,5 @@
 from functools import reduce
-from typing import List
+from typing import List, Tuple, Dict
 from sys import maxsize
 
 # Only accepts adjacency matrix
@@ -10,12 +10,10 @@ class WeightedGraph:
             lines = file.readlines()
 
         self.graph, self.vertices = self.__matrix(lines)
+        self.distances = self.__floyd_warshall()
 
-        print(self.graph)
-
-    def __matrix(self, edge_strings: List[str]) -> List:
+    def __matrix(self, edge_strings: List[str]) -> Tuple[List[List[float]], int]:
         vertices = int(edge_strings.pop(0).strip())
-        print(vertices)
         matrix = [[0 for _ in range(vertices)] for _ in range(vertices)]
 
         for edge_string in edge_strings:
@@ -30,7 +28,7 @@ class WeightedGraph:
 
         return (matrix, vertices)
 
-    def dijkstra(self, starting_vertice: int) -> List[float]:
+    def __dijkstra(self, starting_vertice: int) -> Tuple[List[float]]:
         distances = [maxsize] * self.vertices
         unvisited = list(range(self.vertices))
         path = dict()
@@ -54,9 +52,50 @@ class WeightedGraph:
                 )
 
                 if testing_value < distances[neighbor]:
-                    distances[neighbor] = testing_value
+                    distances[neighbor] = round(testing_value, 1)
                     path[neighbor + 1] = curr_min_node + 1
 
             unvisited.remove(curr_min_node)
 
         return path, distances
+
+    # TODO verificar porque dá erro com pesos negativos
+    def __floyd_warshall(self) -> List[List[float]]:
+        distances = [
+            [maxsize if jx != ix and j == 0 else j for jx, j in enumerate(i)]
+            for ix, i in enumerate(self.graph)
+        ]
+
+        for k in range(self.vertices):
+            for i in range(self.vertices):
+                for j in range(self.vertices):
+                    distances[i][j] = round(
+                        min(distances[i][j], distances[i][k] + distances[k][j]), 1
+                    )
+                    # if i == j and distances[i][j] < 0:
+                    #     distances = None
+                    #     return distances
+
+        return distances
+
+    def bellman_ford(self, node: int) -> List[float]:
+        distances = [maxsize] * self.vertices
+        distances[node - 1] = 0
+
+        for _ in range(self.vertices - 1):
+            for node in range(self.vertices):
+                for neighbor in range(self.vertices):
+                    if (
+                        self.graph[node][neighbor] != 0
+                        and distances[neighbor]
+                        > distances[node] + self.graph[node][neighbor]
+                    ):
+                        distances[neighbor] = round(
+                            distances[node] + self.graph[node][neighbor], 1
+                        )
+
+        for i in range(self.vertices):
+            if distances[i][i] < 0:
+                return None
+
+        return distances
