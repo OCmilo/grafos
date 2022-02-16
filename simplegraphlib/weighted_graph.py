@@ -152,9 +152,13 @@ class WeightedGraph:
         for _ in range(self.vertices - 1):
             for node in range(self.vertices):
                 for neighbor in range(self.vertices):
-                    if self.graph[node][neighbor] != 0 and (
-                        distances[neighbor]
-                        > round(distances[node] + self.graph[node][neighbor], 1)
+                    if (
+                        self.graph[node][neighbor] != 0
+                        and (
+                            distances[neighbor]
+                            > round(distances[node] + self.graph[node][neighbor], 1)
+                        )
+                        and predecessor[node] != neighbor + 1
                     ):
                         distances[neighbor] = round(
                             distances[node] + self.graph[node][neighbor], 1
@@ -163,9 +167,13 @@ class WeightedGraph:
 
         for node in range(self.vertices):
             for neighbor in range(self.vertices):
-                if self.graph[node][neighbor] != 0 and (
-                    distances[neighbor]
-                    > round(distances[node] + self.graph[node][neighbor], 1)
+                if (
+                    self.graph[node][neighbor] != 0
+                    and (
+                        distances[neighbor]
+                        > round(distances[node] + self.graph[node][neighbor], 1)
+                    )
+                    and predecessor[node] != neighbor + 1
                 ):
                     raise NegativeCicleError
 

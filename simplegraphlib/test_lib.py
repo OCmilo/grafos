@@ -12,4 +12,4 @@ from os import path
 
 file_dir = path.dirname(path.abspath(__file__))
 graph = WeightedGraph(path.join(file_dir, "../in.txt"))
-graph.mst()
+print(graph.min_distances(5))
