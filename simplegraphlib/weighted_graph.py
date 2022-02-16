@@ -206,12 +206,6 @@ class WeightedGraph:
 
         return minIndex
 
-    # TODO remover
-    def printMST(self, MST):
-        print("Edge \tWeight")
-        for i in range(1, self.vertices):
-            print(MST[i], "-", i, "\t", self.graph[i][MST[i]])
-
 
 class NegativeCicleError(Exception):
     pass
